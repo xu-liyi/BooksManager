@@ -1,19 +1,30 @@
 package com.xuliyi.learnjava.bean;
 
+/**
+ * 用户数据表
+ * @Date: 2023年9月4日
+ */
 public class AdminBean {
-	/**
-	 * 用户的数据表的bean
-	 */
-	private int aid;// id
-	private int status;// 用来判断是管理员还是读者，读者的值为1，管理员为2
-	private String username;// 账号
-	private String name;// 姓名
-	private String password;// 密码
-	private String email;// 邮箱
-	private String phone;// 手机号
-	private int times;//借阅量
-	private int lend_num;// 可借阅天数
-	private int max_num;// 最大可借数
+	//用户ID
+	private int aid;
+	//用户状态信息，读者的值为1，管理员为2
+	private int status;
+	//用户名
+	private String username;
+	//姓名
+	private String name;
+	//密码
+	private String password;
+	//邮箱
+	private String email;
+	//手机号
+	private String phone;
+	//借阅量
+	private int times;
+	//可借阅天数
+	private int lend_num;
+	//最大可借数
+	private int max_num;
 
 	public int getAid() {
 		return aid;

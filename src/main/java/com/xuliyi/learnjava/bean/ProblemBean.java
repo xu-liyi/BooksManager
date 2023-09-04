@@ -1,9 +1,11 @@
 package com.xuliyi.learnjava.bean;
 
+/**
+ * 问题反馈记录表
+ * @Date: 2023年9月4日
+ */
 public class ProblemBean {
-	/**
-	 * 历史借阅记录的数据表的bean
-	 */
+	
 	private int pid;// 反馈问题的id
 	private int aid;//反馈问题的上传人
 	private String name;// 标题

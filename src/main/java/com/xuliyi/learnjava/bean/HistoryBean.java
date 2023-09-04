@@ -1,9 +1,11 @@
 package com.xuliyi.learnjava.bean;
 
+/**
+ * 历史借阅记录表
+ * @Date: 2023年9月4日
+ */
 public class HistoryBean {
-	/**
-	 * 历史借阅记录的数据表的bean
-	 */
+	
 	private int hid;// 借阅记录的id
 	private int aid;// 读者的id
 	private int bid;// 图书的id
