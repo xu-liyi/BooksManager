@@ -54,7 +54,7 @@ public class AddAdminServlet extends HttpServlet {
 
 		AdminDao userdao = new AdminDao();
 		// 调用函数添加读者信息
-		userdao.Register2(username, password, name, email, phone);
+		userdao.Register_Admin(username, password, name, email, phone);
 		response.sendRedirect("admin_admin.jsp");
 	}
 

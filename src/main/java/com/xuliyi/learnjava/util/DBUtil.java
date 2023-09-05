@@ -66,35 +66,36 @@ public class DBUtil {
 
 	/**  
 	* 关闭数据库连接
+	* 使用try-with-resource改写代码，不再使用此方法
 	* @param      
 	* @return void      
 	* @throws  
 	*/  
-	public static void CloseDB(ResultSet rs, PreparedStatement stm, Connection conn) {
-		if (rs != null) {
-			try {
-				rs.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if (stm != null) {
-			try {
-				stm.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if (conn != null) {
-			try {
-				conn.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+//	public static void CloseDB(ResultSet rs, PreparedStatement stm, Connection conn) {
+//		if (rs != null) {
+//			try {
+//				rs.close();
+//			} catch (SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//		if (stm != null) {
+//			try {
+//				stm.close();
+//			} catch (SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//		if (conn != null) {
+//			try {
+//				conn.close();
+//			} catch (SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 	
 }
