@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 import com.xuliyi.learnjava.bean.AdminBean;
 import com.xuliyi.learnjava.bean.BookBean;
@@ -77,7 +79,7 @@ public class BookDao {
 	 */
 	public ArrayList<BookBean> get_ListInfo() {
 		ArrayList<BookBean> tag_Array = new ArrayList<BookBean>();
-		String sql = "SELECT * FORM book";
+		String sql = "SELECT * FROM book";
 		try(Connection conn = DBUtil.getConnectDb()){
 			try(PreparedStatement ps = conn.prepareStatement(sql)){
 				try(ResultSet rs = ps.executeQuery()){
@@ -334,10 +336,11 @@ public class BookDao {
 	 */
 	public BookBean get_BookInfo(int bid) {
 		BookBean tag = new BookBean();
-		String sql = "SELECT * FORM book WHERE bid=?";
+		String sql = "SELECT * FROM book WHERE bid=?";
 		
 		try(Connection conn = DBUtil.getConnectDb()){
 			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setObject(1, bid);
 				try(ResultSet rs = ps.executeQuery()){
 					while (rs.next()) {
 						tag.setBid(rs.getInt("bid"));
@@ -435,7 +438,7 @@ public class BookDao {
 	 */
 	public void deleteBook(int bid) {
 		// TODO Auto-generated method stub
-		String sql = "DELETE FORM book WHERE bid=?";
+		String sql = "DELETE FROM book WHERE bid=?";
 		
 		try(Connection conn = DBUtil.getConnectDb()){
 			try(PreparedStatement ps = conn.prepareStatement(sql)){
@@ -470,13 +473,13 @@ public class BookDao {
 	public ArrayList<BookBean> getLikeList(String name) {
 		// TODO Auto-generated method stub
 		ArrayList<BookBean> tag_Array = new ArrayList<BookBean>();
-		String sql = "SELECT * FORM book WHERE name LIKE %?% OR autho LIKE %?% OR type LIKE %?%";
+		String sql = "SELECT * FROM book WHERE name like ? OR autho like ? OR type like ?";
 		
 		try(Connection conn = DBUtil.getConnectDb()){
 			try(PreparedStatement ps = conn.prepareStatement(sql)){
-				ps.setObject(1, name);
-				ps.setObject(2, name);
-				ps.setObject(3, name);
+				ps.setObject(1, "%"+name+"%");
+				ps.setObject(2, "%"+name+"%");
+				ps.setObject(3, "%"+name+"%");
 				try(ResultSet rs = ps.executeQuery()){
 					while(rs.next()) {
 						BookBean tag = new BookBean();
@@ -531,66 +534,123 @@ public class BookDao {
 
 	/**
 	 * 图书借阅函数，根据传入bid图书id，adminbean当前登录用户的信息，在借阅记录数据表中新插入一条记录
-	 * 
+	 * 使用新API重写
 	 * @param bid
 	 * @param adminbean
 	 */
 	public void borrowBook(int bid, AdminBean adminbean) {
-		// TODO 
-		BookBean bookbean = new BookBean();
-		bookbean = this.get_BookInfo(bid);
-		// 生成日期的功能
-		Calendar c = Calendar.getInstance();
-		int year = c.get(Calendar.YEAR);
-		int month = c.get(Calendar.MONTH) + 1;
-		int day = c.get(Calendar.DATE);
-		// 生成借阅开始日期
-		String begintime = "" + year + "-" + month + "-" + day;
-		month = month + 1;
-		// 生成截止还书日期
-		String endtime = "" + year + "-" + month + "-" + day;
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "insert into history(aid,bid,card,bookname,adminname,username,begintime,endtime,status) values(?,?,?,?,?,?,?,?,?)";
-		int rs = 0;
-		PreparedStatement ps = null;
-		try {
-			ps = conn.prepareStatement(sql);
-			ps.setInt(1, adminbean.getAid());
-			ps.setInt(2, bookbean.getBid());
-			ps.setString(3, bookbean.getCard());
-			ps.setString(4, bookbean.getName());
-			ps.setString(5, adminbean.getUsername());
-			ps.setString(6, adminbean.getName());
-			ps.setString(7, begintime);
-			ps.setString(8, endtime);
-			ps.setInt(9, 1);
-			rs = ps.executeUpdate();
+		//生成日期并格式化
+		LocalDateTime ldt = LocalDateTime.now();
+		LocalDate borrow_date = ldt.toLocalDate();
+		LocalDate return_date = borrow_date.plusMonths(1);
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String begintime = dtf.format(borrow_date);
+		String endtime = dtf.format(return_date);
+		//提取书籍信息
+		BookBean bookbean = this.get_BookInfo(bid);
+		//插入书籍借阅历史
+		String sql = "INSERT INTO history(aid,bid,card,bookname,adminname,username,begintime,endtime,status) VALUES(?,?,?,?,?,?,?,?,?)";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setInt(1, adminbean.getAid());
+				ps.setInt(2, bookbean.getBid());
+				ps.setString(3, bookbean.getCard());
+				ps.setString(4, bookbean.getName());
+				ps.setString(5, adminbean.getUsername());
+				ps.setString(6, adminbean.getName());
+				ps.setString(7, begintime);
+				ps.setString(8, endtime);
+				ps.setInt(9, 1);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String sql2 = "update book set times=? where bid=?";
-		PreparedStatement ps2 = null;
-		try {
-			ps2 = conn.prepareStatement(sql2);
-			ps2.setInt(1, bookbean.getTimes() + 1);
-			ps2.setInt(2, bookbean.getBid());
-			ps2.executeUpdate();
+		
+		//更新书籍借阅次数信息
+		String sql2 = "UPDATE book SET times=? WHERE bid=?";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql2)){
+				ps.setObject(1, bookbean.getTimes() + 1);
+				ps.setObject(2, bookbean.getBid());
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String sql3 = "update admin set times=? where aid=?";
-		PreparedStatement ps3 = null;
-		try {
-			ps3 = conn.prepareStatement(sql3);
-			ps3.setInt(1, adminbean.getTimes() + 1);
-			ps3.setInt(2, adminbean.getAid());
-			ps3.executeUpdate();
+		
+		//更新借书人借阅次数信息
+		String sql3 = "UPDATE admin SET times=? WHERE aid=?";
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql3)){
+				ps.setObject(1, adminbean.getTimes() + 1);
+				ps.setObject(2, adminbean.getAid());
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+//		BookBean bookbean = new BookBean();
+//		bookbean = this.get_BookInfo(bid);
+//		// 生成日期的功能
+//		Calendar c = Calendar.getInstance();
+//		int year = c.get(Calendar.YEAR);
+//		int month = c.get(Calendar.MONTH) + 1;
+//		int day = c.get(Calendar.DATE);
+//		// 生成借阅开始日期
+//		String begintime = "" + year + "-" + month + "-" + day;
+//		month = month + 1;
+//		// 生成截止还书日期
+//		String endtime = "" + year + "-" + month + "-" + day;
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "insert into history(aid,bid,card,bookname,adminname,username,begintime,endtime,status) values(?,?,?,?,?,?,?,?,?)";
+//		int rs = 0;
+//		PreparedStatement ps = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			ps.setInt(1, adminbean.getAid());
+//			ps.setInt(2, bookbean.getBid());
+//			ps.setString(3, bookbean.getCard());
+//			ps.setString(4, bookbean.getName());
+//			ps.setString(5, adminbean.getUsername());
+//			ps.setString(6, adminbean.getName());
+//			ps.setString(7, begintime);
+//			ps.setString(8, endtime);
+//			ps.setInt(9, 1);
+//			rs = ps.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		String sql2 = "update book set times=? where bid=?";
+//		PreparedStatement ps2 = null;
+//		try {
+//			ps2 = conn.prepareStatement(sql2);
+//			ps2.setInt(1, bookbean.getTimes() + 1);
+//			ps2.setInt(2, bookbean.getBid());
+//			ps2.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		String sql3 = "update admin set times=? where aid=?";
+//		PreparedStatement ps3 = null;
+//		try {
+//			ps3 = conn.prepareStatement(sql3);
+//			ps3.setInt(1, adminbean.getTimes() + 1);
+//			ps3.setInt(2, adminbean.getAid());
+//			ps3.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 
@@ -600,27 +660,50 @@ public class BookDao {
 	 * @param hid
 	 */
 	public void borrowBook2(int hid) {
-		// TODO Auto-generated method stub
-		// 生成日期
-		Calendar c = Calendar.getInstance();
-		int year = c.get(Calendar.YEAR);
-		int month = c.get(Calendar.MONTH) + 1;
-		int day = c.get(Calendar.DATE);
-		// 生成还书日期
-		String endtime = "" + year + "-" + month + "-" + day;
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "update history set endtime=?,status=? where hid=?";
-		PreparedStatement ps = null;
-		try {
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, endtime);
-			ps.setInt(2, 0);
-			ps.setInt(3, hid);
-			ps.executeUpdate();
+		//生成日期并格式化
+		LocalDateTime ldt = LocalDateTime.now();
+		LocalDate borrow_date = ldt.toLocalDate();
+		LocalDate return_date = borrow_date.plusMonths(1);
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String endtime = dtf.format(return_date);
+		
+		String sql = "UPDATE history SET endtime=?,status=? WHERE hid=?";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setString(1, endtime);
+				ps.setInt(2, 0);
+				ps.setInt(3, hid);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+		
+		
+//		// 生成日期
+//		Calendar c = Calendar.getInstance();
+//		int year = c.get(Calendar.YEAR);
+//		int month = c.get(Calendar.MONTH) + 1;
+//		int day = c.get(Calendar.DATE);
+//		// 生成还书日期
+//		String endtime = "" + year + "-" + month + "-" + day;
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "update history set endtime=?,status=? where hid=?";
+//		PreparedStatement ps = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			ps.setString(1, endtime);
+//			ps.setInt(2, 0);
+//			ps.setInt(3, hid);
+//			ps.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	/**
 	 * 图书延期，根据传入hid记录id，在借阅记录数据表中更新endtime记录
@@ -629,18 +712,33 @@ public class BookDao {
 	 * @param endtime
 	 */
 	public void AddTime(int hid, String endtime) {
-		// TODO Auto-generated method stub
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "update history set endtime=? where hid=?";
-		PreparedStatement ps = null;
-		try {
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, endtime);
-			ps.setInt(2, hid);
-			ps.executeUpdate();
+		String sql = "UPDATE history SET endtime=? WHERE hid=?";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setString(1, endtime);
+				ps.setInt(2, hid);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+		
+		
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "update history set endtime=? where hid=?";
+//		PreparedStatement ps = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			ps.setString(1, endtime);
+//			ps.setInt(2, hid);
+//			ps.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 }

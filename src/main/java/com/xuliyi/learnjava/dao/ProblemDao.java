@@ -18,30 +18,55 @@ public class ProblemDao {
 	 */
 	public ArrayList<ProblemBean> get_ListInfo() {
 		ArrayList<ProblemBean> tag_Array = new ArrayList<ProblemBean>();
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "select * from problem";
-		PreparedStatement stm = null;
-		ResultSet rs = null;
-		try {
-			stm = conn.prepareStatement(sql);
-			rs = stm.executeQuery();
-			while (rs.next()) {
-				ProblemBean tag = new ProblemBean();
-				tag.setPid(rs.getInt("pid"));
-				tag.setAid(rs.getInt("aid"));
-				tag.setName(rs.getString("name"));
-				tag.setPage(rs.getString("page"));
-				tag.setBody(rs.getString("body"));
-				tag.setPhone(rs.getString("phone"));
-				tag.setStatus(rs.getString("status"));
-				tag_Array.add(tag);
+		
+		String sql = "SELECT * FROM problem";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				try(ResultSet rs = ps.executeQuery()){
+					while (rs.next()) {
+						ProblemBean tag = new ProblemBean();
+						tag.setPid(rs.getInt("pid"));
+						tag.setAid(rs.getInt("aid"));
+						tag.setName(rs.getString("name"));
+						tag.setPage(rs.getString("page"));
+						tag.setBody(rs.getString("body"));
+						tag.setPhone(rs.getString("phone"));
+						tag.setStatus(rs.getString("status"));
+						tag_Array.add(tag);
+					}
+				}
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			DBUtil.CloseDB(rs, stm, conn);
 		}
+		
+		
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "select * from problem";
+//		PreparedStatement ps = null;
+//		ResultSet rs = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			rs = ps.executeQuery();
+//			while (rs.next()) {
+//				ProblemBean tag = new ProblemBean();
+//				tag.setPid(rs.getInt("pid"));
+//				tag.setAid(rs.getInt("aid"));
+//				tag.setName(rs.getString("name"));
+//				tag.setPage(rs.getString("page"));
+//				tag.setBody(rs.getString("body"));
+//				tag.setPhone(rs.getString("phone"));
+//				tag.setStatus(rs.getString("status"));
+//				tag_Array.add(tag);
+//			}
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} finally {
+//			DBUtil.CloseDB(rs, ps, conn);
+//		}
 		return tag_Array;
 	}
 	/**
@@ -51,30 +76,54 @@ public class ProblemDao {
 	 */
 	public ArrayList<ProblemBean> get_ListInfo2(String aid) {
 		ArrayList<ProblemBean> tag_Array = new ArrayList<ProblemBean>();
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "select * from problem where aid=" + aid;
-		PreparedStatement stm = null;
-		ResultSet rs = null;
-		try {
-			stm = conn.prepareStatement(sql);
-			rs = stm.executeQuery();
-			while (rs.next()) {
-				ProblemBean tag = new ProblemBean();
-				tag.setPid(rs.getInt("pid"));
-				tag.setAid(rs.getInt("aid"));
-				tag.setName(rs.getString("name"));
-				tag.setPage(rs.getString("page"));
-				tag.setBody(rs.getString("body"));
-				tag.setPhone(rs.getString("phone"));
-				tag.setStatus(rs.getString("status"));
-				tag_Array.add(tag);
+		
+		String sql = "SELECT * FROM problem WHERE aid=?";
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setObject(1, aid);
+				try(ResultSet rs = ps.executeQuery()){
+					while (rs.next()) {
+						ProblemBean tag = new ProblemBean();
+						tag.setPid(rs.getInt("pid"));
+						tag.setAid(rs.getInt("aid"));
+						tag.setName(rs.getString("name"));
+						tag.setPage(rs.getString("page"));
+						tag.setBody(rs.getString("body"));
+						tag.setPhone(rs.getString("phone"));
+						tag.setStatus(rs.getString("status"));
+						tag_Array.add(tag);
+					}
+				}
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			DBUtil.CloseDB(rs, stm, conn);
 		}
+				
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "select * from problem where aid=" + aid;
+//		PreparedStatement ps = null;
+//		ResultSet rs = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			rs = ps.executeQuery();
+//			while (rs.next()) {
+//				ProblemBean tag = new ProblemBean();
+//				tag.setPid(rs.getInt("pid"));
+//				tag.setAid(rs.getInt("aid"));
+//				tag.setName(rs.getString("name"));
+//				tag.setPage(rs.getString("page"));
+//				tag.setBody(rs.getString("body"));
+//				tag.setPhone(rs.getString("phone"));
+//				tag.setStatus(rs.getString("status"));
+//				tag_Array.add(tag);
+//			}
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} finally {
+//			DBUtil.CloseDB(rs, ps, conn);
+//		}
 		return tag_Array;
 	}
 	/**
@@ -87,23 +136,38 @@ public class ProblemDao {
 	 * @param phone
 	 */
 	public void addProblem(AdminBean adminbean, String name, String page, String body, String phone) {
-		// TODO Auto-generated method stub
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "insert into problem(aid,name,page,body,phone) values(?,?,?,?,?)";
-		int rs = 0;
-		PreparedStatement stm = null;
-		try {
-			stm = conn.prepareStatement(sql);
-			stm.setInt(1, adminbean.getAid());
-			stm.setString(2, name);
-			stm.setString(3, page);
-			stm.setString(4, body);
-			stm.setString(5, phone);
-			rs = stm.executeUpdate();
+		String sql = "INSERT INTO problem(aid,name,page,body,phone) VALUE(?,?,?,?,?)";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setInt(1, adminbean.getAid());
+				ps.setString(2, name);
+				ps.setString(3, page);
+				ps.setString(4, body);
+				ps.setString(5, phone);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "insert into problem(aid,name,page,body,phone) values(?,?,?,?,?)";
+//		int rs = 0;
+//		PreparedStatement ps = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			ps.setInt(1, adminbean.getAid());
+//			ps.setString(2, name);
+//			ps.setString(3, page);
+//			ps.setString(4, body);
+//			ps.setString(5, phone);
+//			rs = ps.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	/**
@@ -112,18 +176,31 @@ public class ProblemDao {
 	 * @param pid
 	 */
 	public void deleteProblem(int pid) {
-		// TODO Auto-generated method stub
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "delete from problem where pid=?";
-		PreparedStatement stm = null;
-		try {
-			stm = conn.prepareStatement(sql);
-			stm.setInt(1, pid);
-			stm.executeUpdate();
+		String sql = "DELETE FROM problem WHERE pid=?";
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setObject(1, pid);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+		
+		
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "delete from problem where pid=?";
+//		PreparedStatement ps = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			ps.setInt(1, pid);
+//			ps.executeUpdate();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 	/**
@@ -136,12 +213,12 @@ public class ProblemDao {
 		// TODO Auto-generated method stub
 		Connection conn = DBUtil.getConnectDb();
 		String sql = "update problem set status=? where pid=?";
-		PreparedStatement stm = null;
+		PreparedStatement ps = null;
 		try {
-			stm = conn.prepareStatement(sql);
-			stm.setString(1, status);
-			stm.setInt(2, pid);
-			stm.executeUpdate();
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, status);
+			ps.setInt(2, pid);
+			ps.executeUpdate();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -157,31 +234,62 @@ public class ProblemDao {
 	public ArrayList<ProblemBean> getLikeList(String name) {
 		// TODO Auto-generated method stub
 		ArrayList<ProblemBean> tag_Array = new ArrayList<ProblemBean>();
-		Connection conn = DBUtil.getConnectDb();
-		String sql = "select * from problem where name like '%" + name + "%' or page like '%" + name
-				+ "%' or body like '%" + name + "%' or status like '%" + name + "%'";
-		PreparedStatement stm = null;
-		ResultSet rs = null;
-		try {
-			stm = conn.prepareStatement(sql);
-			rs = stm.executeQuery();
-			while (rs.next()) {
-				ProblemBean tag = new ProblemBean();
-				tag.setPid(rs.getInt("pid"));
-				tag.setAid(rs.getInt("aid"));
-				tag.setName(rs.getString("name"));
-				tag.setPage(rs.getString("page"));
-				tag.setBody(rs.getString("body"));
-				tag.setPhone(rs.getString("phone"));
-				tag.setStatus(rs.getString("status"));
-				tag_Array.add(tag);
+		String sql = "SELECT * FROM problem WHERE name LIKE ? OR page LIKE ? OR body LIKE ? OR body LIKE ? OR status LIKE ?";
+		
+		try(Connection conn = DBUtil.getConnectDb()){
+			try(PreparedStatement ps = conn.prepareStatement(sql)){
+				ps.setObject(1, "%"+name+"%");
+				ps.setObject(2, "%"+name+"%");
+				ps.setObject(3, "%"+name+"%");
+				ps.setObject(4, "%"+name+"%");
+				ps.setObject(5, "%"+name+"%");
+				try(ResultSet rs = ps.executeQuery()){
+					while (rs.next()) {
+						ProblemBean tag = new ProblemBean();
+						tag.setPid(rs.getInt("pid"));
+						tag.setAid(rs.getInt("aid"));
+						tag.setName(rs.getString("name"));
+						tag.setPage(rs.getString("page"));
+						tag.setBody(rs.getString("body"));
+						tag.setPhone(rs.getString("phone"));
+						tag.setStatus(rs.getString("status"));
+						tag_Array.add(tag);
+					}
+				}
+				
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			DBUtil.CloseDB(rs, stm, conn);
 		}
+		
+		
+		
+//		Connection conn = DBUtil.getConnectDb();
+//		String sql = "select * from problem where name like '%" + name + "%' or page like '%" + name
+//				+ "%' or body like '%" + name + "%' or status like '%" + name + "%'";
+//		PreparedStatement ps = null;
+//		ResultSet rs = null;
+//		try {
+//			ps = conn.prepareStatement(sql);
+//			rs = ps.executeQuery();
+//			while (rs.next()) {
+//				ProblemBean tag = new ProblemBean();
+//				tag.setPid(rs.getInt("pid"));
+//				tag.setAid(rs.getInt("aid"));
+//				tag.setName(rs.getString("name"));
+//				tag.setPage(rs.getString("page"));
+//				tag.setBody(rs.getString("body"));
+//				tag.setPhone(rs.getString("phone"));
+//				tag.setStatus(rs.getString("status"));
+//				tag_Array.add(tag);
+//			}
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} finally {
+//			DBUtil.CloseDB(rs, ps, conn);
+//		}
 		return tag_Array;
 	}
 }

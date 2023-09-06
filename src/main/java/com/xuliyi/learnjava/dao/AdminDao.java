@@ -709,13 +709,13 @@ public class AdminDao {
 	public ArrayList<AdminBean> getLikeList(String name) {
 		// TODO Auto-generated method stub
 		ArrayList<AdminBean> tag_Array = new ArrayList<AdminBean>();
-		String sql = "SELECT * FROM admin WHERE name like %?% OR username like %?% OR aid like %?%";
+		String sql = "SELECT * FROM admin WHERE name like ? OR username like ? OR aid like ?";
 		
 		try(Connection conn = DBUtil.getConnectDb()){
 			try(PreparedStatement ps = conn.prepareStatement(sql)){
-				ps.setObject(1, name);
-				ps.setObject(2, name);
-				ps.setObject(3, name);
+				ps.setObject(1, "%"+name+"%");
+				ps.setObject(2, "%"+name+"%");
+				ps.setObject(3, "%"+name+"%");
 				try(ResultSet rs = ps.executeQuery()){
 					while(rs.next()) {
 						AdminBean tag = new AdminBean();
